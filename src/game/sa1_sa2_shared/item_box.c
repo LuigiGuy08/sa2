@@ -140,10 +140,16 @@ void CreateEntity_ItemBox(MapEntity *me, u16 spriteRegionX, u16 spriteRegionY, u
 void BreakItemBox(Entity_ItemBox *itembox)
 {
     if (itembox->noPlayerBreakRecoil != TRUE || gPlayer.moveState & MOVESTATE_IN_AIR) {
-        gPlayer.qSpeedAirY = -Q(3.0);
-        gPlayer.charState = CHARSTATE_SPRING_B;
-        gPlayer.prevCharState = CHARSTATE_INVALID;
-        gPlayer.transition = PLTRANS_UNCURL;
+        if (gPlayer.qSpeedAirY > 0)
+            gPlayer.qSpeedAirY = -gPlayer.qSpeedAirY;
+        else
+            gPlayer.qSpeedAirY = -Q(3.0);
+
+        if (gPlayer.charState == CHARSTATE_SOME_OTHER_ATTACK && gPlayer.character == CHARACTER_SONIC)
+            gPlayer.transition = PLTRANS_HOMING_ATTACK_RECOIL;
+        //gPlayer.charState = CHARSTATE_SPRING_B;
+        //gPlayer.prevCharState = CHARSTATE_INVALID;
+        //gPlayer.transition = PLTRANS_UNCURL;
     }
 
     m4aSongNumStart(SE_ITEM_BOX_2);
@@ -427,6 +433,7 @@ void Task_ItemBoxMain(void)
             SET_MAP_ENTITY_NOT_INITIALIZED(itembox->base.me, itembox->base.spriteX);
             TaskDestroy(gCurTask);
         } else {
+            Player_UpdateHomingPosition(QS(itembox->x), QS(itembox->y));
             DrawItemBox(itembox, FALSE);
         }
     }

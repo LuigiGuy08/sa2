@@ -47,6 +47,7 @@ void Player_SonicAmy_StopNSlam_AfterGroundCollision(Player *);
 void Player_SonicAmy_StopNSlam_FallAfterCollision(Player *p);
 void TaskDestructor_SonicBoundMotionFrames(struct Task *);
 void Player_Sonic_HomingAttack(Player *p);
+void Player_ActiveLightSpeed(Player *p);
 void Player_Cream_Flying(Player *p);
 void Player_Cream_ChaoAttack(Player *p);
 void Player_Cream_StepAttack(Player *p);
@@ -399,6 +400,30 @@ void Player_SonicForwardThrust(Player *p)
     PLAYERFN_SET_AND_CALL(Player_Uncurl, p);
 }
 
+void Player_SonicJumpDash(Player *p)
+{
+    Player_TransitionCancelFlyingAndBoost(p);
+    p->moveState |= MOVESTATE_IN_AIR;
+    p->moveState &= ~(MOVESTATE_1000000 | MOVESTATE_20);
+    p->charState = CHARSTATE_JUMP_1;
+
+    if (p->moveState & MOVESTATE_FACING_LEFT)
+    {
+        p->qSpeedAirX -= Q(4);
+    }
+    else
+    {
+        p->qSpeedAirX += Q(4);
+    }
+
+    p->qSpeedAirY = 0;
+    p->rotation = 0;
+    p->unk70 = FALSE;
+    p->unk71 = 0;
+
+    m4aSongNumStart(SE_SONIC_MIDAIR_SOMERSAULT);  
+}
+
 void Player_Sonic_InitHomingAttack(Player *p)
 {
     s16 angle = gHomingTarget.angle;
@@ -413,10 +438,10 @@ void Player_Sonic_InitHomingAttack(Player *p)
 
     p->charState = CHARSTATE_SOME_OTHER_ATTACK;
 
-    cosVal = COS_24_8(angle);
+    /*cosVal = COS_24_8(angle);
     sinVal = SIN_24_8(angle);
     p->qSpeedAirX = I(cosVal * six);
-    p->qSpeedAirY = I(sinVal * six) - Q(0.5);
+    p->qSpeedAirY = I(sinVal * six) - Q(0.5);*/
 
     p->rotation = 0;
     p->unk70 = FALSE;
@@ -439,7 +464,7 @@ void Player_InitHomingAttackRecoil(Player *p)
 
     PLAYERFN_CHANGE_SHIFT_OFFSETS(p, 6, 14);
 
-    p->charState = CHARSTATE_FALLING_VULNERABLE_B;
+    p->charState = CHARSTATE_GRINDING_SONIC_AMY_JUMP_OFF;
 
     p->qSpeedAirX = 0;
     p->qSpeedAirY = -Q(4.0);
@@ -469,17 +494,21 @@ void Player_UpdateHomingPosition(s32 qX, s32 qY)
         if (sqDistance < gHomingTarget.squarePlayerDistance) {
             if (gPlayer.moveState & MOVESTATE_FACING_LEFT) {
                 u16 angle = CLAMP_SIN_PERIOD(sub_8004418(vecTargetX, vecTargetY) - (SIN_PERIOD / 4));
-                if (angle <= DEG_TO_SIN(110)) {
+                if (vecTargetX > 0) {
                     angle = CLAMP_SIN_PERIOD((SIN_PERIOD / 2) - angle);
 
                     gHomingTarget.squarePlayerDistance = sqDistance;
                     gHomingTarget.angle = angle;
+                    gHomingTarget.objX = qX;
+                    gHomingTarget.objY = qY;
                 }
             } else {
                 u16 angle = sub_8004418(-vecTargetY, -vecTargetX);
-                if (angle <= DEG_TO_SIN(110)) {
+                if (vecTargetX < 0) {
                     gHomingTarget.squarePlayerDistance = sqDistance;
                     gHomingTarget.angle = angle;
+                    gHomingTarget.objX = qX;
+                    gHomingTarget.objY = qY;
                 }
             }
         }
@@ -499,6 +528,37 @@ void Player_UpdateHomingPosition(s32 qX, s32 qY)
             }
         }
     }
+}
+
+void Player_SonicLightSpeed(Player *p)
+{
+    s16 angle = gRingTarget.angle;
+    s32 cosVal, sinVal;
+
+    Player_TransitionCancelFlyingAndBoost(p);
+    p->moveState |= (MOVESTATE_SOME_ATTACK | MOVESTATE_BOOST_EFFECT_ON | MOVESTATE_IN_AIR);
+    p->moveState &= ~(MOVESTATE_1000000 | MOVESTATE_20);
+
+    PLAYERFN_CHANGE_SHIFT_OFFSETS(p, 6, 9);
+
+    p->charState = CHARSTATE_SOME_OTHER_ATTACK;
+
+    /*cosVal = COS_24_8(angle);
+    sinVal = SIN_24_8(angle);
+    p->speedAirX = I(cosVal * twelve);
+    p->speedAirY = I(sinVal * twelve) - Q(0.5);*/
+
+    p->rotation = 0;
+    p->unk70 = FALSE;
+    p->unk71 = 0;
+    p->unk6E = 0;
+    p->spriteInfoBody->s.frameFlags &= ~SPRITE_FLAG_MASK_ANIM_OVER;
+    p->rotation = 0;
+    p->unk72 = GBA_FRAMES_PER_SECOND;
+
+    m4aSongNumStart(SE_SONIC_MIDAIR_SOMERSAULT);
+
+    PLAYERFN_SET_AND_CALL(Player_ActiveLightSpeed, p);
 }
 
 void Player_80123D0(Player *p)
@@ -559,6 +619,21 @@ void TaskDestructor_SonicBoundMotionFrames(struct Task *t)
 
 void Player_Sonic_HomingAttack(Player *p)
 {
+    u16 angle = gHomingTarget.angle;
+    if (--p->unk72 == -1) {
+        p->charState = CHARSTATE_FALLING_VULNERABLE_B;
+        p->moveState &= ~MOVESTATE_BOOST_EFFECT_ON;
+    }
+
+    s32 cosVal = COS_24_8(angle);
+    s32 sinVal = SIN_24_8(angle);
+    p->qSpeedAirX = I(cosVal * Q(12.0));
+    p->qSpeedAirY = I(sinVal * Q(12.0)) - Q(0.5);
+
+    angle = CLAMP_SIN_PERIOD(sub_8004418(gHomingTarget.objX, gHomingTarget.objY) - (SIN_PERIOD / 4));
+    angle = CLAMP_SIN_PERIOD((SIN_PERIOD / 2) - angle);
+
+    gHomingTarget.angle = angle;
     if (--p->unk72 == -1) {
         p->charState = CHARSTATE_FALLING_VULNERABLE_B;
         p->moveState &= ~MOVESTATE_BOOST_EFFECT_ON;
@@ -566,10 +641,79 @@ void Player_Sonic_HomingAttack(Player *p)
 
     Player_HandlePhysicsWithAirInput(p);
 
-    if (!(p->moveState & MOVESTATE_IN_AIR)) {
+    if (!(p->moveState & MOVESTATE_IN_AIR) || p->qSpeedAirY == 0) {
         // Hit ground instead of targeted enemy
         p->transition = PLTRANS_TOUCH_GROUND;
     }
+}
+
+void Player_ActiveLightSpeed(Player *p)
+{
+    u16 angle = gRingTarget.angle;
+    if (--p->unk72 == -1) {
+        p->charState = CHARSTATE_JUMP_1;
+        p->moveState &= ~MOVESTATE_BOOST_EFFECT_ON;
+    }
+
+    angle = CLAMP_SIN_PERIOD(sub_8004418(gRingTarget.objX, gRingTarget.objY) - (SIN_PERIOD / 4));
+    angle = CLAMP_SIN_PERIOD((SIN_PERIOD / 2) - angle);
+
+    s32 cosVal = COS_24_8(angle);
+    s32 sinVal = SIN_24_8(angle);
+
+    if (gRingTarget.squarePlayerDistance < SQUARE(56))
+    {
+        p->qSpeedAirX = I(cosVal * Q(12.0));
+        p->qSpeedAirY  = I(sinVal * Q(12.0)) - Q(0.5);       
+    }
+    else if (p->moveState & MOVESTATE_IN_AIR)
+    {
+        p->transition = PLTRANS_UNCURL;
+    }
+    else
+    {
+        p->transition = PLTRANS_TOUCH_GROUND;
+        p->qSpeedGround = p->qSpeedAirX;
+    }
+
+    Player_HandlePhysicsWithAirInput(p);
+}
+
+void Player_GetRingPos(s32 qX, s32 qY)
+{
+    s32 vecTargetX, vecTargetY;
+    s32 sqTargetX, sqTargetY, sqDistance;
+
+    vecTargetX = I(gPlayer.qWorldX - qX);
+    vecTargetY = I(gPlayer.qWorldY - qY);
+    sqTargetX = vecTargetX * vecTargetX;
+    sqTargetY = vecTargetY * vecTargetY;
+    sqDistance = sqTargetX + sqTargetY; // c^2 = a^2 + b^2
+
+
+    //if (gPlayer.character == CHARACTER_SONIC) {
+        if (sqDistance < gRingTarget.squarePlayerDistance) {
+            if (gPlayer.moveState & MOVESTATE_FACING_LEFT) {
+                u16 angle = CLAMP_SIN_PERIOD(sub_8004418(vecTargetX, vecTargetY) - (SIN_PERIOD / 4));
+                /*if (vecTargetX > 0){*/
+                    angle = CLAMP_SIN_PERIOD((SIN_PERIOD / 2) - angle);
+
+                    gRingTarget.squarePlayerDistance = sqDistance;
+                    gRingTarget.angle = angle;
+                    gRingTarget.objX = qX;
+                    gRingTarget.objY = qY;
+                //}
+            } else {
+                u16 angle = sub_8004418(-vecTargetY, -vecTargetX);
+                /*if (vecTargetX < 0) {*/
+                    gRingTarget.squarePlayerDistance = sqDistance;
+                    gRingTarget.angle = angle;
+                    gRingTarget.objX = qX;
+                    gRingTarget.objY = qY;
+                //}
+            }
+        }
+    //}
 }
 
 bool32 Player_Sonic_TryForwardThrust(Player *p)
@@ -915,6 +1059,15 @@ void Player_Tails_8012C2C(Player *p)
     // ...why didn't they just set his timer to a bigger value?
     if ((gStageTime & 0x1) && (p->w.tf.flyingDuration != 0)) {
         p->w.tf.flyingDuration--;
+
+        if (p->heldInput & gPlayerControls.attack)
+        {
+            p->charState = CHARSTATE_TAILS_ANIM_19;
+            p->transition = PLTRANS_UNCURL;
+
+            m4aSongNumStop(SE_CREAM_FLYING);
+            return;
+        }
     }
 
     if (p->unk61 != 1) {

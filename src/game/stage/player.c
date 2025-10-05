@@ -3619,7 +3619,7 @@ void Task_PlayerMain(void)
     BoostEffect_StorePlayerState();
 
     p->moveState &= ~MOVESTATE_ICE_SLIDE;
-    gHomingTarget.squarePlayerDistance = SQUARE(128);
+    gHomingTarget.squarePlayerDistance = SQUARE(200);
     gHomingTarget.angle = 0;
     gCheeseTarget.squarePlayerDistance = SQUARE(CHEESE_DISTANCE_MAX);
     gCheeseTarget.task = NULL;
@@ -6310,6 +6310,18 @@ void DoTrickIfButtonPressed(Player *p)
             PLAYERFN_SET(Player_InitDefaultTrick);
         }
     }
+
+    if ((gGameMode != GAME_MODE_MULTI_PLAYER_COLLECT_RINGS) && (p->frameInput & gPlayerControls.attack)) {
+        switch (p->character)
+        {
+            case CHARACTER_SONIC:
+                if (gRingTarget.squarePlayerDistance < SQUARE(56))
+                {
+                    Player_SonicLightSpeed(p);
+                }
+            break;
+        }
+    }
 }
 
 void Player_8028D74(Player *p)
@@ -6609,8 +6621,20 @@ bool32 Player_TryMidAirAction(Player *p)
         if (p->frameInput & gPlayerControls.attack) {
             switch (p->character) {
                 case CHARACTER_SONIC: {
-                    Player_SonicAmy_InitStopNSlam(p);
-                    return TRUE;
+                    if (gRingTarget.squarePlayerDistance < SQUARE(56))
+                    {
+                        Player_SonicLightSpeed(p);
+                        return TRUE;
+                    }
+                    else
+                    {
+                        p->moveState |= MOVESTATE_SOME_ATTACK;
+                        p->charState = CHARSTATE_SOME_ATTACK;
+                        Player_SonicAmy_InitSkidAttackGfxTask(I(p->qWorldX), I(p->qWorldY), 1);
+                        song = SE_SONIC_INSTA_SHIELD;
+                        goto Player_TryMidAirAction_PlaySfx;
+                    }
+                    //return TRUE;
                 } break;
 
                 case CHARACTER_CREAM: {
@@ -6637,15 +6661,17 @@ bool32 Player_TryMidAirAction(Player *p)
         if (p->frameInput & gPlayerControls.jump) {
             switch (p->character) {
                 case CHARACTER_SONIC: {
-                    if (!IS_BOSS_STAGE(gCurrentLevel) && gHomingTarget.squarePlayerDistance < SQUARE(128)) {
+                    if (!IS_BOSS_STAGE(gCurrentLevel) && gHomingTarget.squarePlayerDistance < SQUARE(200)) {
                         Player_Sonic_InitHomingAttack(p);
                         return TRUE;
                     } else {
-                        p->moveState |= MOVESTATE_SOME_ATTACK;
+                       /* p->moveState |= MOVESTATE_SOME_ATTACK;
                         p->charState = CHARSTATE_SOME_ATTACK;
                         Player_SonicAmy_InitSkidAttackGfxTask(I(p->qWorldX), I(p->qWorldY), 1);
                         song = SE_SONIC_INSTA_SHIELD;
-                        goto Player_TryMidAirAction_PlaySfx;
+                        goto Player_TryMidAirAction_PlaySfx;*/
+                        Player_SonicJumpDash(p);
+                        return TRUE;
                     }
                 } break;
 
@@ -7550,10 +7576,42 @@ bool32 Player_TryAttack(Player *p)
 {
     if ((gGameMode == GAME_MODE_MULTI_PLAYER_COLLECT_RINGS) || (p->moveState & (MOVESTATE_8000 | MOVESTATE_400))
         || ((s8)(p->rotation + Q(0.25)) <= 0)) {
+        if (p->frameInput & gPlayerControls.attack)
+        {
+            switch(p->character)
+            {
+                case CHARACTER_SONIC: {
+                    //Player_SonicAmy_InitStopNSlam(p); nope wrong
+                    if (gRingTarget.squarePlayerDistance < SQUARE(56))
+                    {
+                        Player_SonicLightSpeed(p);
+                        return TRUE;
+                    }
+                } break;
+            }
+        }
         return FALSE;
     } else if (p->frameInput & gPlayerControls.attack) {
-        PLAYERFN_SET(Player_InitAttack);
-        return TRUE;
+        switch(p->character)
+        {
+            case CHARACTER_SONIC: {
+                //Player_SonicAmy_InitStopNSlam(p); nope wrong
+                if (gRingTarget.squarePlayerDistance < SQUARE(56))
+                {
+                    Player_SonicLightSpeed(p);
+                }
+                else
+                {
+                    PLAYERFN_SET(Player_InitAttack);
+                }
+                return TRUE;
+            } break;
+
+            default: {
+                PLAYERFN_SET(Player_InitAttack);
+                return TRUE;
+            }break;
+        }
     } else {
         return FALSE;
     }

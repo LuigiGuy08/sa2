@@ -85,6 +85,8 @@ typedef struct {
 typedef struct {
     s32 squarePlayerDistance;
     u16 angle;
+    s32 objX;
+    s32 objY;
 } HomingTarget;
 
 // Common RoomEvent variables
@@ -190,6 +192,7 @@ extern u8 gNumLives;
 extern u8 gUnknown_030054B0;
 
 extern HomingTarget gHomingTarget;
+extern HomingTarget gRingTarget;
 
 extern u8 gMultiplayerConnections;
 

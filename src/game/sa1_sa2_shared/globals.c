@@ -54,6 +54,7 @@ s8 ALIGNED(4) gUnknown_030054B4[MULTI_SIO_PLAYERS_MAX] = {};
 u8 gUnknown_030054B8 = 0;
 u16 ALIGNED(4) gBossCameraClampYUpper = 0;
 HomingTarget gHomingTarget = {};
+HomingTarget gRingTarget = {};
 
 u8 gDemoPlayCounter = 0;
 u8 ALIGNED(4) gGameMode = 0;

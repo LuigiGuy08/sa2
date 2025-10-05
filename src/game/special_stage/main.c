@@ -580,7 +580,8 @@ void sub_806C560(void)
 
     if (!(chaosEmeralds & CHAOS_EMERALD(stage->zone))) {
         SpecialStageResultsScreenNewEmeraldSequence(stage);
-        gLoadedSaveGame->chaosEmeralds[character] |= CHAOS_EMERALD(stage->zone);
+        for (u8 i=0;i<4;i++)
+            gLoadedSaveGame->chaosEmeralds[i] |= CHAOS_EMERALD(stage->zone);
         stage->animFrame = 120;
     } else {
         stage->animFrame = 12;

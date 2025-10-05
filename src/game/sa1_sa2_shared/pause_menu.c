@@ -122,6 +122,7 @@ void Task_PauseMenuUpdate(void)
         TasksDestroyAll();
         PAUSE_BACKGROUNDS_QUEUE();
         gUnknown_03005390 = 0;
+        gSpecialRingCount = 0;
         PAUSE_GRAPHICS_QUEUE();
         CreateTitleScreenAndSkipIntro();
         return;

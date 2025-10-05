@@ -106,6 +106,9 @@ static void Task_Interactable_SpecialRing(void)
 {
     Sprite_SpecialRing *ring = TASK_DATA(gCurTask);
 
+    if (gPlayer.character == CHARACTER_SONIC)
+        Player_GetRingPos(Q(ring->worldX), Q(ring->worldY));
+
     if (gPlayer.character == CHARACTER_CREAM) {
         Player_UpdateHomingPosition(Q(ring->worldX), Q(ring->worldY));
     }

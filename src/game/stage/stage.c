@@ -187,7 +187,6 @@ void CreateGameStage(void)
     u8 i;
     gGameStageTask = TaskCreate(Task_GameStage, 0, 0xff00, 0, TaskDestructor_GameStage);
     gActiveCollectRingEffectCount = 0;
-    gSpecialRingCount = 0;
     gUnknown_030054B0 = 0;
 
     gStageFlags |= (STAGE_FLAG__DISABLE_PAUSE_MENU | STAGE_FLAG__ACT_START);
@@ -205,6 +204,11 @@ void CreateGameStage(void)
     }
 #ifndef COLLECT_RINGS_ROM
     if (IS_BOSS_STAGE(gCurrentLevel)) {
+        //WOW is this a nerf to getting into the special stages but ehhh
+        if (gSpecialRingCount <= 7)
+            gSpecialRingCount = 0;
+        else
+            gSpecialRingCount -= 7;
         gBossCameraClampYLower = gBossCameraYClamps[LEVEL_TO_ZONE(gCurrentLevel)][0];
         gBossCameraClampYUpper = gBossCameraYClamps[LEVEL_TO_ZONE(gCurrentLevel)][1];
 

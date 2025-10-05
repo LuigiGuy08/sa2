@@ -8,6 +8,8 @@ struct Task *Player_SonicAmy_InitSkidAttackGfxTask(s32 x, s32 y, u16 p2);
 void Player_SonicAmy_InitSkidAttack(Player *);
 void Player_SonicAmy_InitStopNSlam(Player *);
 void Player_Sonic_InitHomingAttack(Player *);
+void Player_SonicJumpDash(Player *);
+void Player_SonicLightSpeed(Player *);
 bool32 Player_Sonic_TryForwardThrust(Player *);
 void Player_Cream_InitFlying(Player *);
 void Player_Cream_InitChaoRollingAttack(Player *);
@@ -23,5 +25,6 @@ void Player_Knuckles_InitDrillClaw(Player *);
 void Player_Amy_InitHammerAttack(Player *);
 void Player_InitHomingAttackRecoil(Player *p);
 void Player_UpdateHomingPosition(s32 qX, s32 qY);
+void Player_GetRingPos(s32 qX, s32 qY);
 
 #endif // GUARD_player_callbacks_H

@@ -233,6 +233,7 @@ NONMATCH("asm/non_matching/game/sa1_sa2_shared/Task_RingsMgrMain_collect_rings.i
                             // _080080D6
                             rx = TO_WORLD_POS(meRing->x, regionX);
                             ry = TO_WORLD_POS(meRing->y, regionY);
+                            Player_GetRingPos(Q(rx), Q(ry));
 
                             if (sp08 != FALSE
                                 || (gCurrentLevel != LEVEL_INDEX(ZONE_FINAL, ACT_TRUE_AREA_53) && !(p->moveState & MOVESTATE_DEAD))) {
@@ -304,6 +305,8 @@ NONMATCH("asm/non_matching/game/sa1_sa2_shared/Task_RingsMgrMain_collect_rings.i
                                         if ((anim != SA2_CHAR_ANIM_HIT && anim != SA2_CHAR_ANIM_DEAD) || !(mpp->unk54 & 0x4)) {
                                             CreateCollectRingEffect(rx, ry);
                                             meRing->x = (u8)MAP_ENTITY_STATE_INITIALIZED;
+                                            Player_GetRingPos(QS(rx), QS(ry));
+
                                         }
                                     }
 
@@ -346,6 +349,7 @@ NONMATCH("asm/non_matching/game/sa1_sa2_shared/Task_RingsMgrMain_collect_rings.i
                             ({ s32 *new_var = &ry; });
 #endif
                             ry = TO_WORLD_POS(meRing->y, regionY);
+                            //Player_GetRingPos(QS(rx), QS(ry));
                             if (rx - gCamera.x < -TILE_WIDTH || (rx - gCamera.x) + TILE_WIDTH > DISPLAY_WIDTH + 2 * TILE_WIDTH
                                 || ry - gCamera.y < 0 || (ry - gCamera.y) - 2 * TILE_WIDTH > DISPLAY_HEIGHT) {
                                 meRing++;
@@ -360,6 +364,7 @@ NONMATCH("asm/non_matching/game/sa1_sa2_shared/Task_RingsMgrMain_collect_rings.i
                                 meRing++;
                             } else {
                                 meRing++;
+                                Player_GetRingPos(Q(rx), Q(ry));
 
                                 if ((drawCount == 0) || s->oamBaseIndex == 0xFF) {
                                     s->oamBaseIndex = 0xFF;
@@ -416,6 +421,7 @@ NONMATCH("asm/non_matching/game/sa1_sa2_shared/Task_RingsMgrMain_collect_rings.i
 
                             rx = TO_WORLD_POS(meRing->x, regionX);
                             ry = TO_WORLD_POS(meRing->y, regionY);
+                            //Player_GetRingPos(QS(rx), QS(ry));
 
                             if (rx - gCamera.x < -TILE_WIDTH || (rx - gCamera.x) + TILE_WIDTH > DISPLAY_WIDTH + 2 * TILE_WIDTH
                                 || ry - gCamera.y < 0 || (ry - gCamera.y) - 2 * TILE_WIDTH > DISPLAY_HEIGHT) {

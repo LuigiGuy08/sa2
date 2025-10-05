@@ -81,7 +81,7 @@ SDL_Window *vramWindow;
 SDL_Renderer *vramRenderer;
 SDL_Texture *vramTexture;
 #endif
-#define INITIAL_VIDEO_SCALE 1
+#define INITIAL_VIDEO_SCALE 2
 unsigned int videoScale = INITIAL_VIDEO_SCALE;
 unsigned int preFullscreenVideoScale = INITIAL_VIDEO_SCALE;
 
